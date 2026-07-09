@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mesolimbic Dopamine and the Geometry of Learning — Cathy Liu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: Georgia, serif; max-width: 720px; margin: 0 auto;
+         padding: 2.5rem 1.5rem 4rem; line-height: 1.65; color: #222; background: #fff; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; }
+  h1 { font-size: 1.45rem; margin-bottom: .2rem; }
+  .byline { font-family: system-ui, sans-serif; font-size: .85rem; color: #777; margin-bottom: 2rem; }
+  h2 { font-size: 1.1rem; margin-top: 2.5rem; border-bottom: 1px solid #eee; padding-bottom: .3rem; }
+  .note { background: #f6f6f4; border-left: 3px solid #999; padding: .8rem 1rem;
+          font-family: system-ui, sans-serif; font-size: .85rem; color: #444; margin: 1.2rem 0; }
+  figure { margin: 1.2rem 0; }
+  figure img { max-width: 100%; display: block; }
+  figcaption { font-family: system-ui, sans-serif; font-size: .78rem; color: #777; margin-top: .4rem; }
+  a { color: #2255aa; }
+  .meta { font-family: system-ui, sans-serif; font-size: .8rem; color: #888;
+          margin-top: 3rem; border-top: 1px solid #eee; padding-top: 1rem; }
+  .tag { display: inline-block; font-family: system-ui, sans-serif; font-size: .75rem;
+         background: #eef2f8; color: #2255aa; padding: .15rem .5rem;
+         border-radius: 3px; margin-right: .3rem; }
+  .highlight  { background: #fff8f0; border-left: 3px solid #e67e22; padding: .6rem 1rem;
+                font-family: system-ui, sans-serif; font-size: .88rem; margin: 1rem 0; }
+  .highlight2 { background: #f0fff4; border-left: 3px solid #27ae60; padding: .6rem 1rem;
+                font-family: system-ui, sans-serif; font-size: .88rem; margin: 1rem 0; }
+  .highlight3 { background: #f0f4ff; border-left: 3px solid #1a5c8a; padding: .6rem 1rem;
+                font-family: system-ui, sans-serif; font-size: .88rem; margin: 1rem 0; }
+</style>
+</head>
+<body>
+
+<h1>Mesolimbic Dopamine and the Geometry of Learning: When Does Duration Matter?</h1>
+<div class="byline">Cathy Liu · cathyliu014@gmail.com · personal exploratory project, July 2026</div>
+
+<span class="tag">fiber photometry</span>
+<span class="tag">dopamine</span>
+<span class="tag">associative learning</span>
+<span class="tag">prediction error</span>
+<span class="tag">inter-reward interval</span>
+<span class="tag">Python / NWB</span>
+
+<p style="margin-top:1.2rem">
+The
+<a href="https://www.namboodirilab.org/" target="_blank">Namboodiri lab</a>
+studies how the brain learns — specifically, how mesolimbic dopamine encodes causal associations
+and how the structure of experience (not just its content) shapes learning rates. Their work
+combines fiber photometry, head-fixed behavior, and optogenetics to dissect the circuit-level
+mechanisms behind reinforcement learning in mice.
+</p>
+<p>
+Their 2022 paper (Jeong et al., <em>Nature Neuroscience</em>) showed that dopamine signals in
+the nucleus accumbens convey causal associations — not just reward prediction errors, but
+information about which stimuli reliably precede rewards. I wanted to look at the raw
+photometry data underlying those claims, and to connect it to the lab's more recent 2026 finding
+that changed how I think about learning rate.
+</p>
+
+<div class="note">
+<strong>What this is.</strong> Personal exploratory analysis, not novel research.
+Fiber photometry data downloaded from
+<a href="https://dandiarchive.org/dandiset/000351" target="_blank">DANDI archive 000351</a>
+(Jeong et al. 2022, "Mesolimbic dopamine release conveys causal associations").
+Session: subject HJ-FP-F1, Day 12 (fully learned). GCaMP6f signal in NAc, 120 Hz sampling,
+50 cue trials and 100 reward trials extracted. Per-trial baseline subtraction (pre-event window).
+Schematic in Figure 2 is illustrative — it depicts the conceptual finding of Namboodiri et al.
+2026 (<em>Nat Neurosci</em>), not a re-analysis of their data.
+</div>
+
+<h2>Dopamine responds to both cue and reward in a learned association</h2>
+
+<figure>
+  <img src="dopamine_traces.svg?v=1"
+       alt="Peri-event GCaMP traces aligned to cue and reward onset, Day 12">
+  <figcaption>Peri-event GCaMP traces from NAc, aligned to cue (CS, blue) and reward (US, orange)
+  onset in session Day 12 — a fully learned association. Shaded bands = ±SEM. Both cue and reward
+  elicit dopamine responses, but reward produces a larger peak (0.88% dF/F at 0.70 s vs 0.27% for
+  cue at 2.0 s). This is consistent with the Jeong et al. finding that mesolimbic dopamine encodes
+  causal associations — by Day 12, the animal knows that the cue predicts reward, and dopamine
+  rises to both. Data: DANDI 000351, subject HJ-FP-F1, Day12-learned.
+  </figcaption>
+</figure>
+
+<div class="highlight">
+<strong>The cue response is the key signature of a learned association.</strong>
+A naive animal would show dopamine responses only to reward (the unconditioned stimulus). By Day 12,
+the cue alone drives a dopamine rise — evidence that the mesolimbic circuit has encoded the
+cue→reward contingency. The reward response remains, but in a fully-learned temporal difference
+framework, cue responses should eventually equal or exceed reward responses as the animal
+"pre-pays" its prediction error at the earliest reliable predictor.
+</div>
+
+<h2>What controls how fast this learning happens?</h2>
+
+<figure>
+  <img src="iri_learning.svg?v=1"
+       alt="Schematic: inter-reward interval controls learning rate">
+  <figcaption>Schematic representation of the core finding in Namboodiri et al. 2026
+  (<em>Nat Neurosci</em>): when the duration between rewards (inter-reward interval, IRI) is
+  longer, animals learn faster — even when the total number of reward pairings is held constant.
+  This means the brain does not simply count reward events; it encodes the temporal structure
+  of experience. Curves are illustrative of the qualitative result, not a re-analysis of their data.
+  </figcaption>
+</figure>
+
+<div class="highlight2">
+<strong>Duration between rewards, not trial count, controls learning rate.</strong>
+The intuitive assumption has always been that learning rate scales with the number of
+reward pairings — that's how most RL models are parameterized, and it's what decades of animal
+conditioning experiments seemed to show. Namboodiri et al. 2026 showed this is wrong: the
+inter-reward interval is the primary determinant of how fast an association forms. An animal
+given 20 rewards 90 seconds apart learns faster than one given 20 rewards 5 seconds apart,
+even though the total reward count is identical. The implication is that the mesolimbic system
+is tracking elapsed time, not event counts — which raises questions about the neural implementation
+that current dopamine/TD models do not clearly answer.
+</div>
+
+<div class="highlight3">
+<strong>The connection to the 2022 data is direct.</strong>
+The photometry traces in Figure 1 show dopamine dynamics in a session where the IRI was fixed.
+What the 2026 paper asks is: how would these cue-response magnitudes differ if the IRI had been
+shorter? The prediction is that cue responses (the "learned" component) would be smaller — not
+because fewer trials occurred, but because the brain's internal timer generates weaker
+associations when rewards arrive in rapid succession. This is a testable prediction in the
+existing DANDI datasets (sessions with varying ITIs) that I found interesting to think about.
+</div>
+
+<h2>Connection to the lab's work</h2>
+<ul>
+<li>
+<strong>Temporal structure of learning:</strong>
+The IRI finding raises a specific mechanistic question: which neurons encode elapsed time between
+rewards, and how does that signal interact with dopamine release? One possibility is that
+the VTA tracks reward history with adaptation-like dynamics — slow IRI → fuller recovery → larger
+dopaminergic response to next reward. Testing this would require photometry in VTA alongside NAc
+during IRI manipulation experiments, which I'd be excited to contribute to.
+</li>
+<li>
+<strong>Causal associations vs. mere correlations:</strong>
+The 2022 Jeong et al. paper showed that dopamine specifically encodes <em>causal</em>
+cue→reward relationships rather than temporal correlations. I'm interested in how the lab
+operationalizes "causal" in the context of the IRI finding — if the animal assigns higher causal
+weight to a reward that follows a longer delay, that has implications for how dopamine circuits
+represent cause-and-effect that go beyond standard TD models.
+</li>
+<li>
+On the experimental side, I have experience with mammalian cell culture, Western blot, ELISA,
+flow cytometry, fluorescence microscopy, and protein analytical methods. I'm also comfortable
+with Python-based data analysis, NWB/DANDI data formats, and have worked with time-series
+neural data computationally. I'd be glad to contribute across bench and analysis.
+</li>
+</ul>
+
+<h2>Methods</h2>
+<p>
+Fiber photometry data from
+<a href="https://dandiarchive.org/dandiset/000351" target="_blank">DANDI archive 000351</a>
+(Jeong et al. 2022, <em>Nat Neurosci</em>). Subject HJ-FP-F1, session Day12-learned. Raw NWB file
+read with h5py; GCaMP signal extracted from <code>acquisition/photometry/GCaMP</code> (120 Hz).
+Peri-event traces: −2 s to +5 s window around each event onset; per-trial baseline subtraction
+using the mean of the pre-event window (first 2 s). Event timestamps from
+<code>processing/behavior/BehavioralEpochs</code>. Cue = Sound1 (n=50 trials); Reward = Fixed
+solenoid 3 (n=100 trials, including uncued). Figure 2 is a schematic based on the conceptual
+result reported in Namboodiri et al. 2026, <em>Nat Neurosci</em> (DOI forthcoming); curves are
+illustrative only. Figures: pure Python SVG. Code:
+<a href="fetch_data.py">fetch_data.py</a>, <a href="make_figures.py">make_figures.py</a>.
+Trace data: <a href="traces_summary.tsv">traces_summary.tsv</a>.
+</p>
+
+<div class="meta">
+Cathy Liu — cathyliu014@gmail.com | 415-216-3799<br>
+<a href="https://liuzhitong330.github.io/tvb-llm-robust-neurostim/" target="_blank">Epilepsy neurostimulation project</a> ·
+<a href="https://arxiv.org/abs/2606.04339" target="_blank">arXiv:2606.04339</a>
+</div>
+
+</body>
+</html>
