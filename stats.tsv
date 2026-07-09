@@ -1,0 +1,10 @@
+metric	value
+cue_n_trials	50
+reward_n_trials	100
+cue_peak_dff	0.27
+reward_peak_dff	0.88
+cue_peak_time	2.00
+reward_peak_time	0.70
+session	Day12-learned
+subject	HJ-FP-F1
+dandi_id	000351
